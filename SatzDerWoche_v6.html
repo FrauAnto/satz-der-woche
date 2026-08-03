@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Satz der Woche</title>
+<style>
+:root{--ink:#1a1a2e;--paper:#fafaf7;--blue:#1565c0;--blue-lt:#e8f0fb;--green:#2e7d32;--green-lt:#e8f5e9;--teal:#00695c;--teal-lt:#e0f2f1;--orange:#e65100;--orange-lt:#fff3e0;--purple:#6a1b9a;--purple-lt:#f3e5f5;--grey:#f0eff0;--border:#d0cfc8;--muted:#757575;--radius:10px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;font-size:15px}
+#tp{background:#1a1a2e;color:#fff}
+#tp-btn{width:100%;background:none;border:none;color:#aaa;font-size:12px;padding:8px 16px;cursor:pointer;text-align:left}
+#tp-btn:hover{color:#fff}
+#tp-panel{display:none;padding:16px;gap:10px;flex-wrap:wrap;background:#16213e;border-bottom:2px solid #e65100}
+#tp-panel.open{display:flex}
+.ts{width:100%;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#e65100;font-weight:700;padding-bottom:3px;border-bottom:1px solid #333;margin-top:6px}
+.tf{display:flex;flex-direction:column;gap:3px;flex:1;min-width:140px}
+.tf label{font-size:11px;color:#aaa;text-transform:uppercase}
+.tf input,.tf select,.tf textarea{background:#1a1a2e;border:1px solid #444;color:#fff;border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit;resize:vertical}
+.tf textarea{min-height:48px}
+.tr{display:flex;gap:10px;flex-wrap:wrap;width:100%}
+.mc-blk{background:#111827;border-radius:8px;padding:10px;width:100%;display:flex;flex-direction:column;gap:6px}
+.mc-blk-title{font-size:11px;color:#e65100;font-weight:700}
+.mc-row{display:flex;gap:6px;align-items:center}
+.mc-row input[type=text]{flex:1;background:#1a1a2e;border:1px solid #444;color:#fff;border-radius:5px;padding:5px 7px;font-size:12px;font-family:inherit}
+.mc-row input[type=radio]{accent-color:#e65100;cursor:pointer}
+.mc-row label{font-size:11px;color:#aaa;white-space:nowrap}
+#tp-save{background:#e65100;color:#fff;border:none;border-radius:8px;padding:9px 20px;cursor:pointer;font-weight:700;font-size:13px;margin-top:6px}
+#tp-woche-list{width:100%;display:flex;flex-direction:column;gap:4px}
+.woche-chip{display:inline-flex;align-items:center;gap:8px;background:#1a1a2e;border:1px solid #444;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer}
+.woche-chip:hover{border-color:#e65100;color:#e65100}
+.woche-chip.active{border-color:#e65100;color:#e65100}
+header{padding:14px 20px 10px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+#kw-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--blue);background:var(--blue-lt);border-radius:20px;padding:4px 12px;margin-top:2px;width:fit-content}
+.day-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.day-tab{padding:5px 10px;border-radius:20px;font-size:12px;font-weight:600;border:2px solid transparent;cursor:pointer;background:var(--grey);color:var(--muted)}
+.day-tab[data-d="0"].active{color:var(--blue);background:var(--blue-lt);border-color:var(--blue)}
+.day-tab[data-d="1"].active{color:var(--green);background:var(--green-lt);border-color:var(--green)}
+.day-tab[data-d="2"].active{color:var(--teal);background:var(--teal-lt);border-color:var(--teal)}
+.day-tab[data-d="3"].active{color:var(--orange);background:var(--orange-lt);border-color:var(--orange)}
+.day-tab[data-d="4"].active{color:var(--purple);background:var(--purple-lt);border-color:var(--purple)}
+#banner{margin:14px 20px;background:var(--blue-lt);border:1.5px solid var(--blue);border-radius:var(--radius);padding:12px 16px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}
+.b-satz{font-size:15px;line-height:1.6;flex:1;min-width:200px}
+.b-satz .zw{font-weight:800;color:var(--orange);background:#fff3e0;border-radius:4px;padding:1px 4px}
+.b-meta{display:flex;flex-direction:column;gap:5px}
+.chip{display:inline-flex;flex-direction:column;padding:5px 10px;border-radius:8px;font-size:11px}
+.chip span:first-child{font-size:9px;color:var(--muted);text-transform:uppercase}
+.chip span:last-child{font-weight:800;font-size:13px}
+.chip-w{background:var(--orange-lt)}.chip-w span:last-child{color:var(--orange)}
+.chip-a{background:var(--purple-lt)}.chip-a span:last-child{color:var(--purple)}
+#woche-bar{margin:0 20px 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#woche-bar label{font-size:13px;font-weight:600;color:var(--muted)}
+#woche-sel{border:2px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;font-family:inherit;outline:none;background:#fff}
+#name-bar{margin:0 20px 12px;display:flex;align-items:center;gap:8px}
+#name-bar label{font-size:13px;font-weight:600;color:var(--muted)}
+#name-inp{border:2px solid var(--border);border-radius:8px;padding:7px 11px;font-size:14px;font-family:inherit;outline:none;width:220px}
+#name-inp:focus{border-color:var(--blue)}
+main{padding:0 20px 28px}
+.card{background:#fff;border:2px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.card-head{padding:12px 16px;display:flex;align-items:center;gap:8px}
+.card-emoji{font-size:20px}.card-title{font-size:15px;font-weight:700}.card-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.card-body{padding:0 16px 16px;display:flex;flex-direction:column;gap:12px}
+.prompt{background:var(--grey);border-radius:8px;padding:11px 13px;font-size:14px;line-height:1.7;white-space:pre-line}
+.hint{font-size:12px;color:var(--muted);font-style:italic;padding:4px 10px;border-left:3px solid var(--border)}
+.fri-blank{font-family:'Courier New',monospace;font-size:12px;color:var(--muted);background:var(--purple-lt);border-radius:8px;padding:9px 12px}
+textarea{width:100%;border:2px solid var(--border);border-radius:8px;padding:9px 11px;font-size:14px;font-family:inherit;resize:vertical;min-height:85px;outline:none}
+textarea:focus{border-color:var(--blue)}
+.sub-btn{padding:10px 22px;border-radius:8px;border:none;font-weight:700;font-size:14px;cursor:pointer;color:#fff}
+.sub-btn:disabled{opacity:.5;cursor:not-allowed}
+.b0{background:var(--blue)}.b1{background:var(--green)}.b2{background:var(--teal)}.b3{background:var(--orange)}.b4{background:var(--purple)}
+.fb{border-radius:10px;padding:14px 16px;font-size:14px;line-height:1.8;display:none;border-left:4px solid}
+.fb.vis{display:block}
+.fb-lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px}
+.fb0{background:var(--blue-lt);border-color:var(--blue)}.fb0 .fb-lbl{color:var(--blue)}
+.fb1{background:var(--green-lt);border-color:var(--green)}.fb1 .fb-lbl{color:var(--green)}
+.fb2{background:var(--teal-lt);border-color:var(--teal)}.fb2 .fb-lbl{color:var(--teal)}
+.fb3{background:var(--orange-lt);border-color:var(--orange)}.fb3 .fb-lbl{color:var(--orange)}
+.fb4{background:var(--purple-lt);border-color:var(--purple)}.fb4 .fb-lbl{color:var(--purple)}
+.stempel{border-radius:10px;padding:10px 14px;font-size:13px;border-left:4px solid var(--orange);background:var(--orange-lt);display:none}
+.stempel.vis{display:block}
+.stempel-lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:var(--orange);margin-bottom:3px}
+.def-box{background:var(--blue-lt);border:1.5px solid var(--blue);border-radius:var(--radius);padding:13px 15px;font-size:14px;line-height:1.8}
+.def-lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:var(--blue);margin-bottom:6px}
+.mc-sec{display:flex;flex-direction:column;gap:10px}
+.mc-q{background:var(--grey);border-radius:10px;padding:12px 14px}
+.mc-qt{font-size:14px;font-weight:600;margin-bottom:8px}
+.mc-opts{display:flex;flex-direction:column;gap:5px}
+.mc-ob{padding:8px 12px;border-radius:8px;border:2px solid var(--border);background:#fff;font-size:13px;text-align:left;cursor:pointer;font-family:inherit}
+.mc-ob:hover:not(:disabled){border-color:var(--blue);background:var(--blue-lt)}
+.mc-ob.ok{border-color:var(--green)!important;background:var(--green-lt)!important;font-weight:700}
+.mc-ob.no{border-color:#c62828!important;background:#ffebee!important}
+.mc-res{font-size:12px;margin-top:5px;font-weight:600;display:none}
+.mc-res.vis{display:block}
+.saved{font-size:12px;color:var(--green);font-weight:600;display:none}
+.saved.vis{display:inline}
+.day-0 .card-head{background:var(--blue-lt);border-bottom:1.5px solid var(--blue)}.day-0.card{border-color:var(--blue)}
+.day-1 .card-head{background:var(--green-lt);border-bottom:1.5px solid var(--green)}.day-1.card{border-color:var(--green)}
+.day-2 .card-head{background:var(--teal-lt);border-bottom:1.5px solid var(--teal)}.day-2.card{border-color:var(--teal)}
+.day-3 .card-head{background:var(--orange-lt);border-bottom:1.5px solid var(--orange)}.day-3.card{border-color:var(--orange)}
+.day-4 .card-head{background:var(--purple-lt);border-bottom:1.5px solid var(--purple)}.day-4.card{border-color:var(--purple)}
+footer{text-align:center;padding:12px;font-size:11px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div id="tp">
+  <button id="tp-btn" onclick="togglePanel()">⚙️ Lehrperson-Einstellungen ▾</button>
+  <div id="tp-panel">
+
+    <div class="ts" style="margin-top:0">📋 Gespeicherte Wochen</div>
+    <div id="tp-woche-list"></div>
+    <button onclick="neueWoche()" style="background:#333;color:#fff;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;font-size:12px">+ Neue Woche</button>
+
+    <div class="ts">📖 Woche bearbeiten</div>
+    <div class="tr">
+      <div class="tf"><label>Satz der Woche</label><textarea id="t-satz" rows="2"></textarea></div>
+      <div class="tf" style="max-width:170px"><label>Zielwort (Grundform)</label><input id="t-wort" type="text"></div>
+      <div class="tf" style="max-width:120px"><label>Wortart</label><select id="t-art"><option>Verb</option><option>Nomen</option><option>Adjektiv</option></select></div>
+      <div class="tf" style="max-width:75px"><label>Woche Nr.</label><input id="t-woche" type="text"></div>
+      <div class="tf" style="max-width:65px"><label>KW</label><input id="t-kw" type="text"></div>
+    </div>
+
+    <div class="ts">📖 Definition (Montag)</div>
+    <div class="tr">
+      <div class="tf"><label>Kindgerechte Definition</label><textarea id="t-def" rows="3"></textarea></div>
+    </div>
+
+    <div class="ts">🎯 MC Frage 1 (optional)</div>
+    <div class="mc-blk">
+      <input type="text" id="mc1-q" placeholder="Frage..." style="background:#1a1a2e;border:1px solid #444;color:#fff;border-radius:5px;padding:6px 8px;font-size:12px;font-family:inherit;width:100%">
+      <div class="mc-row"><input type="radio" name="mc1c" value="0" id="mc1c0"><label for="mc1c0">✓</label><input type="text" id="mc1-o0" placeholder="Antwort A"></div>
+      <div class="mc-row"><input type="radio" name="mc1c" value="1" id="mc1c1"><label for="mc1c1">✓</label><input type="text" id="mc1-o1" placeholder="Antwort B"></div>
+      <div class="mc-row"><input type="radio" name="mc1c" value="2" id="mc1c2"><label for="mc1c2">✓</label><input type="text" id="mc1-o2" placeholder="Antwort C"></div>
+      <div class="mc-row"><input type="radio" name="mc1c" value="3" id="mc1c3"><label for="mc1c3">✓</label><input type="text" id="mc1-o3" placeholder="Antwort D"></div>
+      <div style="font-size:11px;color:#888">Klicke ✓ neben der richtigen Antwort</div>
+    </div>
+
+    <div class="ts">🎯 MC Frage 2 (optional)</div>
+    <div class="mc-blk">
+      <input type="text" id="mc2-q" placeholder="Frage..." style="background:#1a1a2e;border:1px solid #444;color:#fff;border-radius:5px;padding:6px 8px;font-size:12px;font-family:inherit;width:100%">
+      <div class="mc-row"><input type="radio" name="mc2c" value="0" id="mc2c0"><label for="mc2c0">✓</label><input type="text" id="mc2-o0" placeholder="Antwort A"></div>
+      <div class="mc-row"><input type="radio" name="mc2c" value="1" id="mc2c1"><label for="mc2c1">✓</label><input type="text" id="mc2-o1" placeholder="Antwort B"></div>
+      <div class="mc-row"><input type="radio" name="mc2c" value="2" id="mc2c2"><label for="mc2c2">✓</label><input type="text" id="mc2-o2" placeholder="Antwort C"></div>
+      <div class="mc-row"><input type="radio" name="mc2c" value="3" id="mc2c3"><label for="mc2c3">✓</label><input type="text" id="mc2-o3" placeholder="Antwort D"></div>
+    </div>
+
+    <div class="ts">🔄 Donnerstag – Synonym & Antonym</div>
+    <div class="tr">
+      <div class="tf"><label>Synonyme (kommagetrennt)</label><input id="t-syn" type="text" placeholder="z.B. fleissig, zielstrebig, motiviert"></div>
+      <div class="tf"><label>Antonyme (kommagetrennt)</label><input id="t-ant" type="text" placeholder="z.B. faul, gleichgültig, antriebslos"></div>
+    </div>
+
+    <div class="ts">📝 Freitag – 2. Lückenwort</div>
+    <div class="tr">
+      <div class="tf"><label>2. Wort das fehlt (exakt wie im Satz)</label><input id="t-lueck" type="text" placeholder="z.B. schwierig"></div>
+    </div>
+
+    <div class="ts">📊 Google Sheets</div>
+    <div class="tr">
+      <div class="tf"><label>Web-App URL</label><input id="t-script" type="text" value="https://script.google.com/macros/s/AKfycbwO-d7qDNpraWZD02lZNHJcr_RDgamvqEchmtscO4EQLLqEsYBcFFOOyb0PkO-iSDi_bQ/exec"></div>
+    </div>
+
+    <button id="tp-save" onclick="saveWoche()">💾 Diese Woche speichern</button>
+  </div>
+</div>
+
+<header>
+  <div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">Satz der Woche</div>
+    <div id="kw-badge">📅 Woche wählen</div>
+  </div>
+  <div class="day-tabs" id="day-tabs"></div>
+</header>
+
+<div id="banner">
+  <div style="flex:1;min-width:200px">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--blue);font-weight:700;margin-bottom:5px">✦ Unser Satz diese Woche</div>
+    <div class="b-satz" id="b-satz" style="color:var(--muted);font-style:italic;font-size:13px">Bitte zuerst eine Woche auswählen.</div>
+  </div>
+  <div class="b-meta">
+    <div class="chip chip-w"><span>Zielwort</span><span id="chip-w">—</span></div>
+    <div class="chip chip-a"><span>Wortart</span><span id="chip-a">—</span></div>
+  </div>
+</div>
+
+<div id="woche-bar">
+  <label>📅 Woche:</label>
+  <select id="woche-sel" onchange="wocheWaehlen(this.value)">
+    <option value="">– Woche auswählen –</option>
+  </select>
+</div>
+
+<div id="name-bar">
+  <label>👤 Dein Name:</label>
+  <input id="name-inp" type="text" placeholder="Vorname Nachname">
+</div>
+
+<main>
+  <div class="card" id="card">
+    <div class="card-head">
+      <span class="card-emoji" id="c-emoji">📅</span>
+      <div><div class="card-title" id="c-title">Wähle zuerst eine Woche</div><div class="card-sub" id="c-sub"></div></div>
+    </div>
+    <div class="card-body" id="c-body"></div>
+  </div>
+</main>
+<footer>Satz-der-Woche-Tool · Individuelles Lernen · 5 Min.</footer>
+
+<script>
+var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwO-d7qDNpraWZD02lZNHJcr_RDgamvqEchmtscO4EQLLqEsYBcFFOOyb0PkO-iSDi_bQ/exec";
+var WOCHEN = [];
+var S = null;
+var currentDay = 0;
+var editIdx = -1;
+var DN = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag"];
+var DE = ["📖","✏️","🔍","🌐","🧠"];
+
+function autoDay(){var d=new Date().getDay();return(d>=1&&d<=5)?d-1:0;}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+function init(){
+  try{
+    // Script-URL immer aus dem eingebauten Wert nehmen
+    document.getElementById("t-script").value=SCRIPT_URL;
+    // Gespeicherte URL ignorieren - verhindert veraltete URLs
+    var w=localStorage.getItem("sdw_wochen");
+    if(w) WOCHEN=JSON.parse(w);
+  }catch(e){}
+  try{
+    var name=localStorage.getItem("sdw_name")||"";
+    document.getElementById("name-inp").value=name;
+    document.getElementById("name-inp").addEventListener("change",function(){
+      localStorage.setItem("sdw_name",this.value);
+      // Stempel für aktuellen Tag neu laden
+      var stBox=document.getElementById("stempel-box");
+      if(stBox&&currentDay>0) loadStempel(DN[currentDay],stBox);
+    });
+    // Stempel nach kurzem Delay laden (Name ist jetzt gesetzt)
+    if(name){
+      setTimeout(function(){
+        var stBox=document.getElementById("stempel-box");
+        if(stBox&&currentDay>0) loadStempel(DN[currentDay],stBox);
+      },500);
+    }
+  }catch(e){}
+  currentDay=autoDay();
+  renderWochenDropdown();
+  renderPanelList();
+  renderTabs();
+}
+
+// ── PANEL ─────────────────────────────────────────────────────────────────
+function togglePanel(){
+  document.getElementById("tp-panel").classList.toggle("open");
+}
+
+function renderPanelList(){
+  var el=document.getElementById("tp-woche-list");
+  if(!WOCHEN.length){el.innerHTML="<div style='font-size:12px;color:#888'>Noch keine Wochen gespeichert.</div>";return;}
+  el.innerHTML="";
+  WOCHEN.forEach(function(w,i){
+    var chip=document.createElement("div");
+    chip.className="woche-chip"+(editIdx===i?" active":"");
+    chip.textContent="KW "+w.kw+" – "+w.wort;
+    chip.onclick=function(){editIdx=i;ladeInPanel(i);renderPanelList();};
+    el.appendChild(chip);
+  });
+}
+
+function ladeInPanel(i){
+  var w=WOCHEN[i];
+  document.getElementById("t-satz").value=w.satz||"";
+  document.getElementById("t-wort").value=w.wort||"";
+  document.getElementById("t-art").value=w.art||"Verb";
+  document.getElementById("t-woche").value=w.woche||"";
+  document.getElementById("t-kw").value=w.kw||"";
+  document.getElementById("t-def").value=w.def||"";
+  document.getElementById("t-syn").value=w.syn||"";
+  document.getElementById("t-ant").value=w.ant||"";
+  document.getElementById("t-lueck").value=w.lueck||"";
+  if(w.mc){
+    w.mc.forEach(function(q,qi){
+      var n=qi+1;
+      document.getElementById("mc"+n+"-q").value=q.q||"";
+      [0,1,2,3].forEach(function(j){
+        var el=document.getElementById("mc"+n+"-o"+j);
+        if(el)el.value=q.opts&&q.opts[j]?q.opts[j]:"";
+      });
+      var r=document.getElementById("mc"+n+"c"+(q.correct||0));
+      if(r)r.checked=true;
+    });
+  }
+}
+
+function neueWoche(){
+  editIdx=-1;
+  ["t-satz","t-wort","t-woche","t-kw","t-def","mc1-q","mc2-q"].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.value="";
+  });
+  [1,2].forEach(function(n){
+    [0,1,2,3].forEach(function(j){
+      var el=document.getElementById("mc"+n+"-o"+j);if(el)el.value="";
+    });
+    var r=document.getElementById("mc"+n+"c0");if(r)r.checked=true;
+  });
+  document.getElementById("t-art").value="Verb";
+  renderPanelList();
+}
+
+function getMC(n){
+  var q=document.getElementById("mc"+n+"-q").value.trim();
+  var opts=[0,1,2,3].map(function(i){return document.getElementById("mc"+n+"-o"+i).value.trim();});
+  var correct=0;
+  document.querySelectorAll("input[name='mc"+n+"c']").forEach(function(r){if(r.checked)correct=parseInt(r.value);});
+  return{q:q,opts:opts,correct:correct};
+}
+
+function saveWoche(){
+  var w={
+    satz:document.getElementById("t-satz").value.trim(),
+    wort:document.getElementById("t-wort").value.trim(),
+    art:document.getElementById("t-art").value,
+    woche:document.getElementById("t-woche").value.trim(),
+    kw:document.getElementById("t-kw").value.trim(),
+    def:document.getElementById("t-def").value.trim(),
+    syn:document.getElementById("t-syn").value.trim(),
+    ant:document.getElementById("t-ant").value.trim(),
+    lueck:document.getElementById("t-lueck").value.trim(),
+    mc:[getMC(1),getMC(2)]
+  };
+  if(!w.kw||!w.satz||!w.wort){alert("Bitte mindestens KW, Satz und Zielwort ausfüllen.");return;}
+  SCRIPT_URL=document.getElementById("t-script").value.trim();
+
+  // Bestehende überschreiben oder neu
+  var found=false;
+  for(var i=0;i<WOCHEN.length;i++){
+    if(WOCHEN[i].kw===w.kw){WOCHEN[i]=w;editIdx=i;found=true;break;}
+  }
+  if(!found){WOCHEN.push(w);editIdx=WOCHEN.length-1;}
+  WOCHEN.sort(function(a,b){return parseInt(a.kw)-parseInt(b.kw);});
+  // editIdx nach sort neu finden
+  for(var i=0;i<WOCHEN.length;i++){if(WOCHEN[i].kw===w.kw){editIdx=i;break;}}
+
+  try{localStorage.setItem("sdw_wochen",JSON.stringify(WOCHEN));}catch(e){}
+  renderPanelList();
+  renderWochenDropdown();
+  alert("KW "+w.kw+" gespeichert! ✓");
+}
+
+// ── WOCHE WÄHLEN ──────────────────────────────────────────────────────────
+function renderWochenDropdown(){
+  var sel=document.getElementById("woche-sel");
+  while(sel.options.length>1)sel.remove(1);
+  WOCHEN.forEach(function(w,i){
+    var opt=document.createElement("option");
+    opt.value=i;
+    opt.textContent="KW "+w.kw+" – "+w.wort;
+    sel.appendChild(opt);
+  });
+}
+
+function wocheWaehlen(idx){
+  if(idx==="")return;
+  S=WOCHEN[parseInt(idx)];
+  renderBanner();
+  renderTabs();
+  renderCard();
+}
+
+// ── BANNER ────────────────────────────────────────────────────────────────
+function renderBanner(){
+  if(!S)return;
+  document.getElementById("kw-badge").textContent="📅 Woche "+S.woche+" · KW "+S.kw;
+  document.getElementById("chip-w").textContent=S.wort;
+  document.getElementById("chip-a").textContent=S.art;
+  var esc=S.wort.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  var html="«"+S.satz.replace(new RegExp("("+esc+")","gi"),'<span class="zw">$1</span>')+"»";
+  if(html==="«"+S.satz+"»")html="«"+S.satz+"» <span style='font-size:11px;color:var(--muted)'>(Zielwort: <strong>"+S.wort+"</strong>)</span>";
+  document.getElementById("b-satz").innerHTML=html;
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────
+function renderTabs(){
+  var el=document.getElementById("day-tabs");el.innerHTML="";
+  DN.forEach(function(n,i){
+    var b=document.createElement("button");
+    b.className="day-tab"+(i===currentDay?" active":"");
+    b.dataset.d=i;b.textContent=n;
+    b.onclick=function(){currentDay=i;renderTabs();if(S)renderCard();};
+    el.appendChild(b);
+  });
+}
+
+// ── REGEL-FEEDBACK ────────────────────────────────────────────────────────
+function feedback(day,answer){
+  var a=answer.trim(),aL=a.toLowerCase(),w=S.wort.toLowerCase();
+  var vn=document.getElementById("name-inp").value.trim().split(" ")[0]||"";
+  if(vn)vn=" "+vn;
+  function hatW(t){return t.toLowerCase().indexOf(w.substring(0,Math.max(4,w.length-3)))!==-1;}
+  function endet(t){return /[.!?]$/.test(t.trim());}
+  function gross(t){return /^[A-ZÄÖÜ]/.test(t.trim());}
+  function wanz(t){return t.trim().split(/\s+/).length;}
+  var lobs=["Super gemacht"+vn+"! 🌟","Toll"+vn+"! 👍","Sehr gut"+vn+"! ✨","Gut gemacht"+vn+"! 🎉","Prima"+vn+"! 💪"];
+  var lob=lobs[Math.floor(Math.random()*lobs.length)];
+
+  if(day===1){
+    if(!hatW(a))return "Du hast dir etwas überlegt – gut! Das Zielwort «"+S.wort+"» fehlt aber noch. Schreibe einen Satz und benutze darin das Wort «"+S.wort+"».";
+    if(wanz(a)<4)return lob+" Das Zielwort ist da! Dein Satz könnte noch länger sein.";
+    var h=[];
+    if(!gross(a))h.push("Beginne mit einem Grossbuchstaben.");
+    if(!endet(a))h.push("Vergiss den Punkt am Ende nicht.");
+    if(h.length)return lob+" Das Zielwort ist da! Noch: "+h.join(" ");
+    return lob+" Du hast das Zielwort «"+S.wort+"» richtig verwendet. Ausgezeichnet!";
+  }
+  if(day===2){
+    if(S.art==="Verb"){
+      var ff=["ich","du","er","sie","wir","ihr"],gef=0;
+      ff.forEach(function(f){if(aL.indexOf(f)!==-1)gef++;});
+      if(gef>=5)return lob+" Viele Formen aufgeschrieben! Vergleiche sie nochmals mit dem Wörterbuch.";
+      if(gef>=3)return lob+" "+gef+" Formen da! Vervollständige: ich/du/er-sie/wir/ihr/sie – alle sechs!";
+      return "Gut versucht"+vn+"! Schreibe alle sechs Formen:\nych __ / du __ / er/sie __ / wir __ / ihr __ / sie __";
+    } else if(S.art==="Adjektiv"){
+      var hk=aL.indexOf("er")!==-1,hs=aL.indexOf("am ")!==-1||aL.indexOf("sten")!==-1;
+      if(hk&&hs)return lob+" Alle drei Steigerungsformen da! Kontrolliere nochmals.";
+      return "Gut versucht"+vn+"! Schreibe: Grundform / Komparativ (+er) / Superlativ (am …sten).";
+    } else {
+      if(hatW(a)&&wanz(a)>2)return lob+" Plural gebildet und Satz geschrieben! Vergleiche mit dem Wörterbuch.";
+      if(wanz(a)<=2)return lob+" Plural ist da! Schreibe jetzt noch einen vollständigen Satz damit.";
+      return "Schreibe den Plural von «"+S.wort+"» und dann einen Satz damit.";
+    }
+  }
+  if(day===3){
+    var anz=a.split(/[\n,;]+/).filter(function(x){return x.trim().length>2;}).length;
+    var erkl=a.indexOf("=")!==-1||a.indexOf("bedeutet")!==-1||a.length>40;
+    if(anz>=1&&erkl)return lob+" Verwandte Wörter gefunden und erklärt. Ausgezeichnet!";
+    if(anz>=1)return lob+" Verwandte Wörter gefunden! Erkläre noch kurz was sie bedeuten.";
+    return "Suche Wörter mit demselben Wortstamm wie «"+S.wort+"» und erkläre kurz was sie bedeuten.";
+  }
+  if(day===4){
+    var sw=S.satz.toLowerCase().replace(/[.,!?]/g,"").split(/\s+/);
+    var aw=aL.replace(/[.,!?]/g,"").split(/\s+/);
+    var fehl=0;sw.forEach(function(x,i){if(aw[i]!==x)fehl++;});
+    var proz=Math.round((1-fehl/sw.length)*100);
+    // Banner wieder einblenden nach Absenden
+    var banner=document.getElementById("banner");
+    if(banner){banner.style.display="";}
+    if(fehl===0)return "Fantastisch"+vn+"! 🏆 Vollständig und fehlerfrei! Der Satz oben ist jetzt wieder sichtbar zur Kontrolle.";
+    if(fehl<=2)return lob+" Fast perfekt – "+proz+"% stimmt! Vergleiche jetzt mit dem Satz oben.";
+    if(fehl<=4)return "Gut"+vn+"! "+proz+"% richtig. Vergleiche jetzt mit dem Satz oben.";
+    return "Mutig"+vn+"! "+proz+"% stimmt. Vergleiche jetzt mit dem Satz oben.";
+  }
+  return "";
+}
+
+// ── SHEETS SPEICHERN ──────────────────────────────────────────────────────
+var FORMS = {
+  "Montag":    {url:"https://docs.google.com/forms/d/e/1FAIpQLSeDNkLH4Jez_R_wXo0W5Cx8AN6ncI9gmYKMRex-lRPCGRgTsQ/formResponse", eName:"entry.1951325212", eAns:"entry.40607100"},
+  "Dienstag":  {url:"https://docs.google.com/forms/d/e/1FAIpQLSePeIPHehmhpA7bM6bu-FhY4aU_4TuCcDEn7PPEyGZMzXZUjw/formResponse", eName:"entry.1951325212", eAns:"entry.40607100"},
+  "Mittwoch":  {url:"https://docs.google.com/forms/d/e/1FAIpQLSft3xmMQ7EIg14BRV9lxjjaBRFCb4MjpCSC-em3ZEo_yJ6SzA/formResponse", eName:"entry.1951325212", eAns:"entry.40607100"},
+  "Donnerstag":{url:"https://docs.google.com/forms/d/e/1FAIpQLSen51FDFzOymEBEekvzKG2uOfHN9hH_SF1_wH8Z00zkk8uvig/formResponse", eName:"entry.1951325212", eAns:"entry.40607100"},
+  "Freitag":   {url:"https://docs.google.com/forms/d/e/1FAIpQLSfYspbWeBtlGnTurziciC4OqSa4lOlDR9-9t2f1uC6FE-ZN7A/formResponse", eName:"entry.1951325212", eAns:"entry.40607100"}
+};
+
+function saveToSheets(name,tag,antwort,fbText){
+  var f=FORMS[tag];
+  if(!f)return;
+  var fullText="[KW"+(S?S.kw:"")+"] "+antwort+" | FB: "+fbText;
+  var iframe=document.createElement("iframe");
+  iframe.style.display="none";
+  document.body.appendChild(iframe);
+  var doc=iframe.contentWindow.document;
+  doc.open();
+  doc.write('<form method="POST" action="'+f.url+'" id="gf">'
+    +'<input name="'+f.eName+'" value="'+name.replace(/"/g,"&quot;")+'"><input name="'+f.eAns+'" value="'+fullText.replace(/"/g,"&quot;")+'"></form>');
+  doc.close();
+  try{doc.getElementById("gf").submit();}catch(err){}
+  setTimeout(function(){if(iframe.parentNode)iframe.parentNode.removeChild(iframe);},3000);
+}
+
+// ── STEMPEL ───────────────────────────────────────────────────────────────
+function loadStempel(tag,boxEl){
+  var name=document.getElementById("name-inp").value.trim();
+  if(!name||!SCRIPT_URL)return;
+  var cb="sdwst"+Date.now();
+  window[cb]=function(data){
+    delete window[cb];
+    var s=document.getElementById("jsonp_"+cb);if(s)s.remove();
+    if(data&&data.stempel){
+      // Montag hat andere Struktur
+      var moTxt=document.getElementById("stempel-txt-mo");
+      if(moTxt){moTxt.textContent=data.stempel;}
+      else if(boxEl){boxEl.className="stempel vis";boxEl.querySelector(".stempel-txt").textContent=data.stempel;}
+    }
+  };
+  var s=document.createElement("script");
+  s.id="jsonp_"+cb;
+  s.src=SCRIPT_URL+"?action=getStempel&name="+encodeURIComponent(name)+"&tag="+encodeURIComponent(tag)+"&callback="+cb;
+  document.head.appendChild(s);
+}
+
+// ── CARD ──────────────────────────────────────────────────────────────────
+function renderCard(){
+  if(!S)return;
+  // Banner immer einblenden (wird nur Freitag ausgeblendet)
+  var bannerEl=document.getElementById("banner");
+  if(bannerEl){bannerEl.style.display="";}
+  var d=currentDay;
+  document.getElementById("card").className="card day-"+d;
+  document.getElementById("c-emoji").textContent=DE[d];
+  var titles=["Wort kennenlernen","Eigener Satz","Grammatik","Wortfamilie","Ich erinnere mich"];
+  var subs=["Lies die Definition und beantworte die Fragen.","Benutze das Zielwort in einem eigenen Satz.","Grammatik-Aufgabe zum Zielwort.","Verwandte Wörter entdecken.","Schreibe den Satz aus dem Gedächtnis."];
+  document.getElementById("c-title").textContent=titles[d];
+  document.getElementById("c-sub").textContent=subs[d];
+  var body=document.getElementById("c-body");body.innerHTML="";
+
+  // Stempel nur Montag
+
+  if(d===0){
+    // MONTAG: Stempel der letzten Woche mit Button
+    var stMo=document.createElement("div");stMo.className="stempel";stMo.id="stempel-box";
+    stMo.innerHTML="<div class='stempel-lbl'>✏️ Rückmeldung der Lehrperson (letzte Woche)</div><div class='stempel-txt'></div>";
+    var stBtn=document.createElement("button");
+    stBtn.style.cssText="margin-top:8px;padding:7px 16px;border-radius:8px;border:none;background:var(--orange);color:#fff;font-weight:700;font-size:13px;cursor:pointer";
+    stBtn.textContent="📬 Rückmeldung anzeigen";
+    stBtn.onclick=function(){
+      var name=document.getElementById("name-inp").value.trim();
+      if(!name){alert("Bitte zuerst Namen eintragen.");return;}
+      stBtn.textContent="⏳ Laden...";stBtn.disabled=true;
+      loadStempel("Montag",stMo);
+      setTimeout(function(){stBtn.style.display="none";},2000);
+    };
+    var stWrap=document.createElement("div");
+    stWrap.style.cssText="background:var(--orange-lt);border:1.5px solid var(--orange);border-radius:var(--radius);padding:12px 14px;";
+    var stTitle=document.createElement("div");
+    stTitle.style.cssText="font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:var(--orange);margin-bottom:6px";
+    stTitle.textContent="✏️ Rückmeldung der Lehrperson (letzte Woche)";
+    var stTxt=document.createElement("div");
+    stTxt.id="stempel-txt-mo";stTxt.style.cssText="font-size:14px;margin-bottom:6px";
+    stWrap.appendChild(stTitle);
+    stWrap.appendChild(stTxt);
+    stWrap.appendChild(stBtn);
+    body.appendChild(stWrap);
+
+    if(S.def){
+      var db=document.createElement("div");db.className="def-box";
+      db.innerHTML="<div class='def-lbl'>📖 Was bedeutet «"+S.wort+"»?</div><div>"+S.def.replace(/\n/g,"<br>")+"</div>";
+      body.appendChild(db);
+    } else {
+      var nd=document.createElement("div");nd.className="hint";nd.textContent="Noch keine Definition eingetragen.";body.appendChild(nd);
+    }
+    // MC
+    var hasMC=false;
+    var mcSec=document.createElement("div");mcSec.className="mc-sec";
+    var mcTitle=document.createElement("div");
+    mcTitle.style.cssText="font-size:13px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:1px";
+    mcTitle.textContent="🎯 Teste dein Verständnis";
+    mcSec.appendChild(mcTitle);
+    (S.mc||[]).forEach(function(q,qi){
+      if(!q||!q.q)return;hasMC=true;
+      var qd=document.createElement("div");qd.className="mc-q";
+      var qt=document.createElement("div");qt.className="mc-qt";qt.textContent=(qi+1)+". "+q.q;qd.appendChild(qt);
+      var od=document.createElement("div");od.className="mc-opts";
+      var rd=document.createElement("div");rd.className="mc-res";
+      (q.opts||[]).forEach(function(opt,oi){
+        if(!opt)return;
+        var btn=document.createElement("button");btn.className="mc-ob";btn.textContent=opt;
+        btn.onclick=function(){
+          od.querySelectorAll(".mc-ob").forEach(function(b){b.disabled=true;});
+          if(oi===q.correct){btn.classList.add("ok");rd.textContent="✓ Richtig! 🌟";rd.style.color="var(--green)";}
+          else{btn.classList.add("no");od.querySelectorAll(".mc-ob")[q.correct].classList.add("ok");rd.textContent="Nicht ganz – richtige Antwort ist markiert.";rd.style.color="var(--orange)";}
+          rd.className="mc-res vis";
+        };
+        od.appendChild(btn);
+      });
+      qd.appendChild(od);qd.appendChild(rd);mcSec.appendChild(qd);
+    });
+    if(hasMC)body.appendChild(mcSec);
+    // Fertig-Button
+    var br=document.createElement("div");br.style.cssText="display:flex;align-items:center;gap:12px";
+    var btn=document.createElement("button");btn.className="sub-btn b0";btn.textContent="Fertig ✓";
+    btn.onclick=function(){
+      var name=document.getElementById("name-inp").value.trim();
+      if(!name){alert("Bitte Namen eintragen.");return;}
+      btn.disabled=true;btn.textContent="Gespeichert ✓";
+      saveToSheets(name,"Montag","Definition & Quiz abgeschlossen","—");
+    };
+    br.appendChild(btn);body.appendChild(br);
+
+  } else {
+    // DI–FR
+    var prompts={
+      1:"Schreibe einen eigenen Satz mit dem Wort «"+S.wort+"».\nDu darfst die Form des Wortes verändern.",
+      2:S.art==="Verb"?"Konjugiere das Verb «"+S.wort+"» im Präsens:\nych __ / du __ / er/sie __ / wir __ / ihr __ / sie __":S.art==="Adjektiv"?"Steigere das Adjektiv «"+S.wort+"»:\nGrundform: __ / Komparativ: __ / Superlativ: am __":"Bilde den Plural von «"+S.wort+"».\nSchreibe dann einen Satz mit dem Plural.",
+      3:"",
+      4:"Schreibe den Satz dieser Woche aus dem Gedächtnis.\nOhne nachzuschauen!"
+    };
+    var hints={
+      1:"Tipp: Schau, wie das Wort im Modellsatz steht.",
+      2:S.art==="Verb"?"Schau im Wörterbuch nach, wenn du nicht sicher bist.":S.art==="Adjektiv"?"Beispiel: schnell → schneller → am schnellsten":"Beispiel: die Hand → die Hände",
+      3:"",
+      4:"Vergleiche danach mit dem Satz oben. Alles richtig? ✓"
+    };
+    var phs={1:"Mein Satz: ...",2:"Deine Antwort...",3:"Verwandte Wörter...",4:"Schreibe den Satz aus dem Gedächtnis..."};
+
+    if(d===3){
+      // DONNERSTAG: Synonym + Antonym
+      var dp=document.createElement("div");dp.className="prompt";
+      dp.textContent="Schreibe je ein Wort mit ähnlicher und gegenteiliger Bedeutung.";
+      body.appendChild(dp);
+      var synRow=document.createElement("div");synRow.style.cssText="display:flex;flex-direction:column;gap:6px";
+      var synLbl=document.createElement("div");synLbl.style.cssText="font-size:13px;font-weight:600;color:var(--teal)";synLbl.textContent="🔄 Synonym (ähnliche Bedeutung):";
+      var synInp=document.createElement("input");synInp.type="text";synInp.id="syn-inp";synInp.placeholder="Ein Wort mit ähnlicher Bedeutung...";
+      synInp.style.cssText="width:100%;border:2px solid var(--border);border-radius:8px;padding:9px 11px;font-size:14px;font-family:inherit;outline:none";
+      var antLbl=document.createElement("div");antLbl.style.cssText="font-size:13px;font-weight:600;color:var(--orange);margin-top:8px";antLbl.textContent="↔️ Antonym (gegenteilige Bedeutung):";
+      var antInp=document.createElement("input");antInp.type="text";antInp.id="ant-inp";antInp.placeholder="Ein Wort mit gegenteiliger Bedeutung...";
+      antInp.style.cssText="width:100%;border:2px solid var(--border);border-radius:8px;padding:9px 11px;font-size:14px;font-family:inherit;outline:none";
+      synRow.appendChild(synLbl);synRow.appendChild(synInp);
+      synRow.appendChild(antLbl);synRow.appendChild(antInp);
+      body.appendChild(synRow);
+    } else if(d===4){
+      // FREITAG: Banner ausblenden, Lückentext mit 2 Lücken
+    } else {
+      var pe=document.createElement("div");pe.className="prompt";pe.textContent=prompts[d];body.appendChild(pe);
+      var he=document.createElement("div");he.className="hint";he.textContent=hints[d];body.appendChild(he);
+    }
+
+    if(d===4){
+      // Banner komplett verstecken
+      document.getElementById("banner").style.display="none";
+      var friHint=document.createElement("div");friHint.className="prompt";
+      friHint.textContent="Schreibe den Satz aus dem Gedächtnis. Zwei Wörter fehlen – schreibe sie in die Lücken.\n⚠️ Der Satz ist absichtlich ausgeblendet!";
+      body.appendChild(friHint);
+      // 2 Lücken: Zielwort + lueck
+      var lueck2=S.lueck||"";
+      var blanked=S.satz;
+      // Erst zweites Lückenwort ersetzen
+      if(lueck2&&lueck2!==S.wort){
+        var re2=new RegExp("\\b"+lueck2.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"\\b","i");
+        if(re2.test(blanked)){
+          blanked=blanked.replace(re2,"_".repeat(lueck2.length));
+        } else {
+          blanked=blanked.replace(new RegExp(lueck2,"i"),"_".repeat(lueck2.length));
+        }
+      }
+      // Dann Zielwort ersetzen
+      blanked=blanked.replace(new RegExp(S.wort.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi"),"_".repeat(S.wort.length));
+      var bl=document.createElement("div");bl.className="fri-blank";
+      bl.textContent="«"+blanked+"»";body.appendChild(bl);
+    }
+
+    var ta=document.createElement("textarea");ta.id="ans-inp";ta.placeholder=phs[d];body.appendChild(ta);
+
+    var br2=document.createElement("div");br2.style.cssText="display:flex;align-items:center;gap:12px;flex-wrap:wrap";
+    var btn2=document.createElement("button");btn2.className="sub-btn b"+d;btn2.textContent="Fertig – Rückmeldung holen ✓";
+    var sv=document.createElement("span");sv.className="saved";sv.textContent="✅ Gespeichert";
+    btn2.onclick=function(){
+      // Donnerstag: zwei Felder kombinieren
+      var ans="";
+      var ansInp=document.getElementById("ans-inp");
+      var synInp2=document.getElementById("syn-inp");
+      var antInp2=document.getElementById("ant-inp");
+      if(synInp2&&antInp2){
+        var sv=synInp2.value.trim(),av=antInp2.value.trim();
+        if(!sv&&!av){alert("Bitte Synonym und Antonym eintragen.");return;}
+        ans="Synonym: "+sv+" | Antonym: "+av;
+      } else if(ansInp){
+        ans=ansInp.value.trim();
+        if(!ans){alert("Bitte Antwort eingeben.");return;}
+      }
+      var name=document.getElementById("name-inp").value.trim();
+      if(!name){alert("Bitte Namen eintragen.");return;}
+      btn2.disabled=true;
+      var fbT=feedback(d,ans);
+      var fb=document.getElementById("fb-box");
+      if(fb){fb.className="fb fb"+d+" vis";document.getElementById("fb-txt").textContent=fbT;}
+      btn2.textContent="Nochmals versuchen";btn2.disabled=false;
+      saveToSheets(name,DN[d],ans,fbT);
+      setTimeout(function(){sv.className="saved vis";},1000);
+      // Stempel laden und anzeigen
+      var stBox=document.getElementById("stempel-box");
+      if(stBox) loadStempel(DN[d],stBox);
+    };
+    br2.appendChild(btn2);br2.appendChild(sv);body.appendChild(br2);
+
+    var fb=document.createElement("div");fb.id="fb-box";fb.className="fb fb"+d;
+    fb.innerHTML="<div class='fb-lbl'>Rückmeldung</div><div id='fb-txt'></div>";
+    body.appendChild(fb);
+  }
+}
+
+init();
+</script>
+</body>
+</html>
