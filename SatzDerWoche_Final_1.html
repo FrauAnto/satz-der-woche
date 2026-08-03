@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Satz der Woche</title>
+<style>
+:root{--ink:#1a1a2e;--paper:#fafaf7;--blue:#1565c0;--blue-lt:#e8f0fb;--green:#2e7d32;--green-lt:#e8f5e9;--teal:#00695c;--teal-lt:#e0f2f1;--orange:#e65100;--orange-lt:#fff3e0;--purple:#6a1b9a;--purple-lt:#f3e5f5;--grey:#f0eff0;--border:#d0cfc8;--muted:#757575;--radius:10px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;font-size:15px}
+#teacher-panel{background:#1a1a2e;color:#fff}
+#teacher-toggle{width:100%;background:none;border:none;color:#aaa;font-size:12px;padding:8px 16px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:6px}
+#teacher-toggle:hover{color:#fff}
+#teacher-form{display:none;padding:16px;gap:12px;flex-wrap:wrap;background:#16213e;border-bottom:2px solid #e65100}
+#teacher-form.open{display:flex}
+.t-section{width:100%;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#e65100;font-weight:700;padding-bottom:4px;border-bottom:1px solid #333;margin-bottom:4px}
+.t-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:160px}
+.t-field label{font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.5px}
+.t-field input,.t-field select,.t-field textarea{background:#1a1a2e;border:1px solid #444;color:#fff;border-radius:6px;padding:8px 10px;font-size:13px;font-family:inherit;resize:vertical}
+.t-field textarea{min-height:52px}
+.t-row{display:flex;gap:12px;flex-wrap:wrap;width:100%}
+#teacher-save{align-self:flex-end;background:#e65100;color:#fff;border:none;border-radius:8px;padding:10px 22px;cursor:pointer;font-weight:700;font-size:13px}
+header{padding:16px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.header-left{display:flex;flex-direction:column;gap:4px}
+.app-eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+#kw-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--blue);background:var(--blue-lt);border-radius:20px;padding:4px 12px;margin-top:2px;width:fit-content}
+.day-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.day-tab{padding:6px 11px;border-radius:20px;font-size:12px;font-weight:600;border:2px solid transparent;cursor:pointer;background:var(--grey);color:var(--muted);transition:all .15s}
+.day-tab[data-d="0"].active{color:var(--blue);background:var(--blue-lt);border-color:var(--blue)}
+.day-tab[data-d="1"].active{color:var(--green);background:var(--green-lt);border-color:var(--green)}
+.day-tab[data-d="2"].active{color:var(--teal);background:var(--teal-lt);border-color:var(--teal)}
+.day-tab[data-d="3"].active{color:var(--orange);background:var(--orange-lt);border-color:var(--orange)}
+.day-tab[data-d="4"].active{color:var(--purple);background:var(--purple-lt);border-color:var(--purple)}
+#satz-banner{margin:16px 20px;background:var(--blue-lt);border:1.5px solid var(--blue);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.banner-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--blue);font-weight:700;margin-bottom:6px}
+.banner-satz{font-size:16px;line-height:1.6;flex:1;min-width:200px}
+.banner-satz .zw{font-weight:800;color:var(--orange);background:#fff3e0;border-radius:4px;padding:1px 5px}
+.banner-meta{display:flex;flex-direction:column;gap:6px}
+.meta-chip{display:inline-flex;flex-direction:column;padding:6px 12px;border-radius:8px;font-size:12px}
+.meta-chip span:first-child{font-size:10px;color:var(--muted);text-transform:uppercase}
+.meta-chip span:last-child{font-weight:800;font-size:14px}
+.chip-word{background:var(--orange-lt)}.chip-word span:last-child{color:var(--orange)}
+.chip-art{background:var(--purple-lt)}.chip-art span:last-child{color:var(--purple)}
+#name-bar{margin:0 20px 14px;display:flex;align-items:center;gap:10px}
+#name-bar label{font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap}
+#name-input{border:2px solid var(--border);border-radius:8px;padding:8px 12px;font-size:14px;font-family:inherit;outline:none;width:240px;transition:border-color .15s}
+#name-input:focus{border-color:var(--blue)}
+main{padding:0 20px 28px}
+.task-card{background:#fff;border:2px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.card-head{padding:14px 18px;display:flex;align-items:center;gap:10px}
+.card-emoji{font-size:22px}
+.card-title{font-size:16px;font-weight:700}
+.card-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.card-body{padding:0 18px 18px;display:flex;flex-direction:column;gap:14px}
+.task-prompt{background:var(--grey);border-radius:8px;padding:13px 15px;font-size:14px;line-height:1.7;white-space:pre-line}
+.task-hint{font-size:12px;color:var(--muted);font-style:italic;padding:5px 12px;border-left:3px solid var(--border)}
+.friday-blank{font-family:'Courier New',monospace;font-size:13px;color:var(--muted);background:var(--purple-lt);border-radius:8px;padding:10px 14px;margin-bottom:4px}
+textarea{width:100%;border:2px solid var(--border);border-radius:8px;padding:10px 12px;font-size:15px;font-family:inherit;resize:vertical;min-height:90px;outline:none;transition:border-color .15s}
+textarea:focus{border-color:var(--blue)}
+.submit-btn{align-self:flex-start;padding:11px 24px;border-radius:8px;border:none;font-weight:700;font-size:14px;cursor:pointer;color:#fff;transition:opacity .15s}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-0{background:var(--blue)}.btn-1{background:var(--green)}.btn-2{background:var(--teal)}.btn-3{background:var(--orange)}.btn-4{background:var(--purple)}
+#feedback-box{margin-top:4px;border-radius:10px;padding:16px 18px;font-size:14px;line-height:1.8;display:none;border-left:4px solid var(--blue);background:var(--blue-lt)}
+#feedback-box.vis{display:block}
+.fb-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:10px}
+.fb-0{background:var(--blue-lt);border-color:var(--blue)}.fb-0 .fb-label{color:var(--blue)}
+.fb-1{background:var(--green-lt);border-color:var(--green)}.fb-1 .fb-label{color:var(--green)}
+.fb-2{background:var(--teal-lt);border-color:var(--teal)}.fb-2 .fb-label{color:var(--teal)}
+.fb-3{background:var(--orange-lt);border-color:var(--orange)}.fb-3 .fb-label{color:var(--orange)}
+.fb-4{background:var(--purple-lt);border-color:var(--purple)}.fb-4 .fb-label{color:var(--purple)}
+/* Lehrperson-Stempel */
+#stempel-box{margin-bottom:4px;border-radius:10px;padding:12px 16px;font-size:13px;line-height:1.6;display:none;border-left:4px solid var(--orange);background:var(--orange-lt)}
+#stempel-box.vis{display:block}
+.stempel-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:var(--orange);margin-bottom:6px}
+/* Saved notice */
+#saved-notice{font-size:12px;color:var(--green);font-weight:600;display:none;align-items:center;gap:4px}
+#saved-notice.vis{display:flex}
+/* Definition box */
+#def-box{background:var(--blue-lt);border:1.5px solid var(--blue);border-radius:var(--radius);padding:14px 16px;font-size:14px;line-height:1.8;display:none}
+#def-box.vis{display:block}
+.def-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:var(--blue);margin-bottom:8px}
+/* MC Quiz */
+#mc-box{display:none}
+#mc-box.vis{display:flex;flex-direction:column;gap:14px}
+.mc-question{background:var(--grey);border-radius:10px;padding:14px 16px}
+.mc-q-text{font-size:14px;font-weight:600;margin-bottom:10px;line-height:1.5}
+.mc-options{display:flex;flex-direction:column;gap:6px}
+.mc-btn{padding:9px 14px;border-radius:8px;border:2px solid var(--border);background:#fff;font-size:13px;text-align:left;cursor:pointer;font-family:inherit;transition:all .15s}
+.mc-btn:hover{border-color:var(--blue);background:var(--blue-lt)}
+.mc-btn.correct{border-color:var(--green);background:var(--green-lt);font-weight:700}
+.mc-btn.wrong{border-color:#c62828;background:#ffebee}
+.mc-btn:disabled{cursor:default}
+.mc-result{font-size:12px;margin-top:6px;font-weight:600;display:none}
+.mc-result.vis{display:block}
+/* Loading spinner */
+.loading-text{color:var(--muted);font-style:italic;font-size:13px;padding:8px 0}
+/* Day colours */
+.day-0 .card-head{background:var(--blue-lt);border-bottom:1.5px solid var(--blue)}.day-0.task-card{border-color:var(--blue)}
+.day-1 .card-head{background:var(--green-lt);border-bottom:1.5px solid var(--green)}.day-1.task-card{border-color:var(--green)}
+.day-2 .card-head{background:var(--teal-lt);border-bottom:1.5px solid var(--teal)}.day-2.task-card{border-color:var(--teal)}
+.day-3 .card-head{background:var(--orange-lt);border-bottom:1.5px solid var(--orange)}.day-3.task-card{border-color:var(--orange)}
+.day-4 .card-head{background:var(--purple-lt);border-bottom:1.5px solid var(--purple)}.day-4.task-card{border-color:var(--purple)}
+footer{text-align:center;padding:14px;font-size:11px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div id="teacher-panel">
+  <button id="teacher-toggle" onclick="toggleT()">⚙️ Lehrperson-Einstellungen &nbsp;▾</button>
+  <div id="teacher-form" class="open">
+    <div class="t-section">📖 Woche</div>
+    <div class="t-row">
+      <div class="t-field"><label>Satz der Woche</label><textarea id="t-satz" rows="2">Obwohl es schwierig war, entschloss sie sich weiterzumachen.</textarea></div>
+      <div class="t-field" style="max-width:180px"><label>Zielwort (Grundform)</label><input id="t-wort" type="text" value="entschlossen"></div>
+      <div class="t-field" style="max-width:130px"><label>Wortart</label><select id="t-art"><option>Verb</option><option>Nomen</option><option>Adjektiv</option></select></div>
+      <div class="t-field" style="max-width:80px"><label>Woche</label><input id="t-woche" type="text" value="1"></div>
+      <div class="t-field" style="max-width:70px"><label>KW</label><input id="t-kw" type="text" value="34"></div>
+    </div>
+    <div class="t-section" style="margin-top:8px">📊 Google Sheets – Script-URL</div>
+    <div class="t-row">
+      <div class="t-field"><label>Web-App URL</label><input id="t-script" type="text" value="https://script.google.com/macros/s/AKfycbwpic02V0CZwBsRD9By_mjG2jFvNCz4N0sVFOFdU6CTynH9MElgyMzcjDXzis8Q5Ln7yQ/exec"></div>
+    </div>
+    <button id="teacher-save" onclick="saveT()">💾 Einstellungen speichern</button>
+  </div>
+</div>
+
+<header>
+  <div class="header-left">
+    <div class="app-eyebrow">Satz der Woche</div>
+    <div id="kw-badge" class="kw-badge">📅 Woche 1 · KW 34</div>
+  </div>
+  <div class="day-tabs" id="day-tabs"></div>
+</header>
+
+<div id="satz-banner">
+  <div style="flex:1;min-width:200px">
+    <div class="banner-label">✦ Unser Satz diese Woche</div>
+    <div class="banner-satz" id="banner-satz"></div>
+  </div>
+  <div class="banner-meta">
+    <div class="meta-chip chip-word"><span>Zielwort</span><span id="chip-wort">—</span></div>
+    <div class="meta-chip chip-art"><span>Wortart</span><span id="chip-art">—</span></div>
+  </div>
+</div>
+
+<div id="name-bar">
+  <label for="name-input">👤 Dein Name:</label>
+  <input id="name-input" type="text" placeholder="Vorname Nachname">
+</div>
+
+<main>
+  <div class="task-card" id="task-card">
+    <div class="card-head">
+      <span class="card-emoji" id="card-emoji"></span>
+      <div><div class="card-title" id="card-title"></div><div class="card-sub" id="card-sub"></div></div>
+    </div>
+    <div class="card-body" id="card-body">
+      <!-- dynamisch befüllt -->
+    </div>
+  </div>
+</main>
+<footer>Satz-der-Woche-Tool · Individuelles Lernen · 5 Min.</footer>
+
+<script>
+var S={
+  satz:"Obwohl es schwierig war, entschloss sie sich weiterzumachen.",
+  wort:"entschlossen",art:"Verb",woche:"1",kw:"34",
+  script:"https://script.google.com/macros/s/AKfycbwpic02V0CZwBsRD9By_mjG2jFvNCz4N0sVFOFdU6CTynH9MElgyMzcjDXzis8Q5Ln7yQ/exec"
+};
+var DN=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag"];
+var DE=["📖","✏️","🔍","🌐","🧠"];
+var currentDay=0;
+var cachedMonday=null; // {wort, definition, questions:[{q,options,correct}]}
+
+function autoDay(){var d=new Date().getDay();return(d>=1&&d<=5)?d-1:0;}
+
+// ── REGEL-FEEDBACK ────────────────────────────────────────────────────────
+function getRuleFeedback(day,answer){
+  var a=answer.trim();
+  var w=S.wort.toLowerCase();
+  var aL=a.toLowerCase();
+  var vorname=document.getElementById("name-input").value.trim().split(" ")[0]||"";
+  var vn=vorname?" "+vorname:"";
+  function hatWort(t){var st=w.substring(0,Math.max(4,w.length-3));return t.toLowerCase().indexOf(st)!==-1;}
+  function satzEndet(t){return /[.!?]$/.test(t.trim());}
+  function grossBuchst(t){return /^[A-ZÄÖÜ]/.test(t.trim());}
+  function wortAnz(t){return t.trim().split(/\s+/).length;}
+  var lob=["Super gemacht"+vn+"! 🌟","Toll"+vn+"! 👍","Sehr gut"+vn+"! ✨","Gut gemacht"+vn+"! 🎉","Prima"+vn+"! 💪"];
+  var lobT=lob[Math.floor(Math.random()*lob.length)];
+
+  if(day===1){
+    if(!hatWort(a))return "Du hast dir etwas überlegt"+vn+" – gut! Das Zielwort «"+S.wort+"» fehlt aber noch. Schreibe einen neuen Satz und benutze darin das Wort «"+S.wort+"».";
+    if(wortAnz(a)<4)return lobT+" Das Zielwort ist da! Dein Satz könnte aber länger sein – schreibe einen vollständigen Satz mit Subjekt und Verb.";
+    var h=[];
+    if(!grossBuchst(a))h.push("Beginne den Satz mit einem Grossbuchstaben.");
+    if(!satzEndet(a))h.push("Vergiss den Punkt am Ende nicht.");
+    if(h.length>0)return lobT+" Das Zielwort «"+S.wort+"» ist in deinem Satz! Noch ein Hinweis: "+h.join(" ");
+    return lobT+" Du hast das Zielwort «"+S.wort+"» richtig verwendet. Dein Satz ist vollständig und korrekt. Ausgezeichnet!";
+  }
+  if(day===2){
+    if(S.art==="Verb"){
+      var ff=["ich","du","er","sie","wir","ihr"];var gef=0;
+      ff.forEach(function(f){if(aL.indexOf(f)!==-1)gef++;});
+      if(gef>=5)return lobT+" Du hast viele Formen aufgeschrieben. Vergleiche sie nochmals mit dem Wörterbuch – stimmen alle überein?";
+      if(gef>=3)return lobT+" Du hast "+gef+" Formen. Vervollständige noch: ich / du / er-sie / wir / ihr / sie – alle sechs!";
+      return "Gut versucht"+vn+"! Schreibe alle sechs Formen:\nych __ / du __ / er/sie __ / wir __ / ihr __ / sie __";
+    } else if(S.art==="Adjektiv"){
+      var hk=aL.indexOf("er")!==-1;var hs=aL.indexOf("am ")!==-1||aL.indexOf("sten")!==-1;
+      if(hk&&hs)return lobT+" Grundform, Komparativ und Superlativ sind da. Kontrolliere nochmals ob alle Formen stimmen!";
+      return "Gut versucht"+vn+"! Schreibe: Grundform: "+S.wort+" / Komparativ: "+S.wort+"er / Superlativ: am "+S.wort+"sten";
+    } else {
+      var hs2=wortAnz(a)>2;
+      if(hatWort(a)&&hs2)return lobT+" Du hast einen Plural gebildet und einen Satz geschrieben. Vergleiche den Plural nochmals mit dem Wörterbuch!";
+      if(!hs2)return lobT+" Der Plural ist da! Schreibe jetzt noch einen vollständigen Satz damit.";
+      return "Gut versucht"+vn+"! Schreibe zuerst den Plural von «"+S.wort+"», dann einen Satz damit.";
+    }
+  }
+  if(day===3){
+    var anz=a.split(/[\n,;]+/).filter(function(x){return x.trim().length>2;}).length;
+    var erkl=a.indexOf("=")!==-1||a.indexOf("bedeutet")!==-1||a.length>40;
+    if(anz>=1&&erkl)return lobT+" Du hast verwandte Wörter gefunden und erklärt. Das zeigt, dass du das Wort wirklich verstehst!";
+    if(anz>=1)return lobT+" Verwandte Wörter gefunden! Erkläre noch kurz was sie bedeuten: «Wort» (= Bedeutung).";
+    return "Suche Wörter mit demselben Wortstamm wie «"+S.wort+"». Schreibe dann kurz auf, was sie bedeuten.";
+  }
+  if(day===4){
+    var sw=S.satz.toLowerCase().replace(/[.,!?]/g,"").split(/\s+/);
+    var aw=aL.replace(/[.,!?]/g,"").split(/\s+/);
+    var fehl=0;sw.forEach(function(x,i){if(aw[i]!==x)fehl++;});
+    var proz=Math.round((1-fehl/sw.length)*100);
+    if(fehl===0)return "Fantastisch"+vn+"! 🏆 Du hast den Satz vollständig und fehlerfrei aus dem Gedächtnis aufgeschrieben!";
+    if(fehl<=2)return lobT+" Fast perfekt – "+proz+"% stimmt! Vergleiche mit dem Satz oben – wo ist der kleine Unterschied?";
+    if(fehl<=4)return "Gut"+vn+"! "+proz+"% richtig. Schau den Satz oben an und markiere die Unterschiede.";
+    return "Du hast es versucht"+vn+" – mutig! "+proz+"% stimmt. Vergleiche jetzt Wort für Wort mit dem Satz oben.";
+  }
+  return "";
+}
+
+// ── MONTAG: KI-Definition + MC laden ──────────────────────────────────────
+async function loadMonday(){
+  var cacheKey="sdw_monday_"+S.wort+"_"+S.kw;
+  try{
+    var cached=localStorage.getItem(cacheKey);
+    if(cached){cachedMonday=JSON.parse(cached);renderMondayContent();return;}
+  }catch(e){}
+
+  document.getElementById("def-box").className="";
+  document.getElementById("mc-box").className="";
+  var loadEl=document.getElementById("monday-loading");
+  if(loadEl)loadEl.style.display="block";
+
+  var prompt="Erstelle für ein Schweizer Primarschulkind (5. Klasse, 10–12 Jahre, viele DaZ-Lernende) folgendes für das Wort «"+S.wort+"» (Wortart: "+S.art+", Beispielsatz: «"+S.satz+"»):\n\n1. Eine kindgerechte, klare Definition in 2–4 Sätzen. Einfache Sprache, ein konkretes Alltagsbeispiel einbauen.\n2. Genau 3 Multiple-Choice-Fragen zum Wort. Jede Frage hat 4 Antwortoptionen (A/B/C/D), davon genau eine richtig.\n\nAntworte NUR als JSON in diesem Format (kein Text davor/danach):\n{\"definition\":\"...\",\"questions\":[{\"q\":\"...\",\"options\":[\"A: ...\",\"B: ...\",\"C: ...\",\"D: ...\"],\"correct\":0},{\"q\":\"...\",\"options\":[\"A: ...\",\"B: ...\",\"C: ...\",\"D: ...\"],\"correct\":2},{\"q\":\"...\",\"options\":[\"A: ...\",\"B: ...\",\"C: ...\",\"D: ...\"],\"correct\":1}]}\n\ncorrect ist der Index (0-3) der richtigen Antwort. Schweizerhochdeutsch, ss statt ß.";
+
+  try{
+    var resp=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,messages:[{role:"user",content:prompt}]})
+    });
+    var data=await resp.json();
+    var text=(data.content||[]).map(function(b){return b.text||"";}).join("").trim();
+    text=text.replace(/```json|```/g,"").trim();
+    var parsed=JSON.parse(text);
+    cachedMonday={wort:S.wort,kw:S.kw,definition:parsed.definition,questions:parsed.questions};
+    try{localStorage.setItem(cacheKey,JSON.stringify(cachedMonday));}catch(e){}
+    renderMondayContent();
+  }catch(e){
+    var defEl=document.getElementById("def-box");
+    defEl.className="vis";
+    defEl.innerHTML="<div class='def-label'>📖 Definition</div><div style='color:var(--muted);font-style:italic'>Definition konnte nicht geladen werden. Bitte Seite neu laden.</div>";
+  }
+  if(loadEl)loadEl.style.display="none";
+}
+
+function renderMondayContent(){
+  if(!cachedMonday)return;
+  var defEl=document.getElementById("def-box");
+  defEl.className="vis";
+  defEl.innerHTML="<div class='def-label'>📖 Was bedeutet «"+S.wort+"»?</div><div>"+cachedMonday.definition+"</div>";
+
+  var mcEl=document.getElementById("mc-box");
+  mcEl.className="vis";
+  mcEl.innerHTML="<div style='font-size:13px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:1px'>🎯 Teste dein Verständnis</div>";
+
+  cachedMonday.questions.forEach(function(q,qi){
+    var qDiv=document.createElement("div");
+    qDiv.className="mc-question";
+    var qText=document.createElement("div");
+    qText.className="mc-q-text";
+    qText.textContent=(qi+1)+". "+q.q;
+    qDiv.appendChild(qText);
+    var optsDiv=document.createElement("div");
+    optsDiv.className="mc-options";
+    var resultDiv=document.createElement("div");
+    resultDiv.className="mc-result";
+    q.options.forEach(function(opt,oi){
+      var btn=document.createElement("button");
+      btn.className="mc-btn";
+      btn.textContent=opt;
+      btn.onclick=function(){
+        // Disable all buttons for this question
+        optsDiv.querySelectorAll(".mc-btn").forEach(function(b){b.disabled=true;});
+        if(oi===q.correct){
+          btn.classList.add("correct");
+          resultDiv.textContent="✓ Richtig! 🌟";
+          resultDiv.style.color="var(--green)";
+        } else {
+          btn.classList.add("wrong");
+          optsDiv.querySelectorAll(".mc-btn")[q.correct].classList.add("correct");
+          resultDiv.textContent="Nicht ganz – die richtige Antwort ist markiert.";
+          resultDiv.style.color="var(--orange)";
+        }
+        resultDiv.className="mc-result vis";
+      };
+      optsDiv.appendChild(btn);
+    });
+    qDiv.appendChild(optsDiv);
+    qDiv.appendChild(resultDiv);
+    mcEl.appendChild(qDiv);
+  });
+}
+
+// ── STEMPEL laden ─────────────────────────────────────────────────────────
+async function loadStempel(tag){
+  var name=document.getElementById("name-input").value.trim();
+  if(!name||!S.script)return;
+  try{
+    var url=S.script+"?name="+encodeURIComponent(name)+"&tag="+encodeURIComponent(tag);
+    var resp=await fetch(url);
+    var text=await resp.text();
+    if(text&&text.trim()){
+      var box=document.getElementById("stempel-box");
+      box.className="vis";
+      document.getElementById("stempel-text").textContent="Rückmeldung der Lehrperson: "+text.trim();
+    }
+  }catch(e){}
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function renderBanner(){
+  document.getElementById("kw-badge").textContent="📅 Woche "+S.woche+" · KW "+S.kw;
+  document.getElementById("chip-wort").textContent=S.wort;
+  document.getElementById("chip-art").textContent=S.art;
+  var el=document.getElementById("banner-satz");
+  var esc=S.wort.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  var html="«"+S.satz.replace(new RegExp("("+esc+")","gi"),'<span class="zw">$1</span>')+"»";
+  if(html==="«"+S.satz+"»")html="«"+S.satz+"» <span style='font-size:11px;color:var(--muted)'>(Zielwort: <strong>"+S.wort+"</strong>)</span>";
+  el.innerHTML=html;
+}
+
+function renderTabs(){
+  var el=document.getElementById("day-tabs");el.innerHTML="";
+  DN.forEach(function(n,i){
+    var b=document.createElement("button");
+    b.className="day-tab"+(i===currentDay?" active":"");
+    b.dataset.d=i;b.textContent=n;
+    b.onclick=function(){switchDay(i);};
+    el.appendChild(b);
+  });
+}
+
+function renderCard(){
+  var d=currentDay;
+  document.getElementById("task-card").className="task-card day-"+d;
+  document.getElementById("card-emoji").textContent=DE[d];
+
+  var titles=["Wort kennenlernen","Eigener Satz","Grammatik","Wortfamilie","Ich erinnere mich"];
+  var subs=["Lies die Definition und beantworte die Fragen.","Benutze das Zielwort selbst.","Grammatik-Aufgabe zum Zielwort.","Verwandte Wörter entdecken.","Schreibe den Satz aus dem Gedächtnis."];
+  document.getElementById("card-title").textContent=titles[d];
+  document.getElementById("card-sub").textContent=subs[d];
+
+  var body=document.getElementById("card-body");
+  body.innerHTML="";
+
+  // Stempel-Box (für alle Tage ausser Montag)
+  if(d>0){
+    var stBox=document.createElement("div");
+    stBox.id="stempel-box";stBox.className="";
+    stBox.innerHTML="<div class='stempel-label'>✏️ Rückmeldung der Lehrperson</div><div id='stempel-text'></div>";
+    body.appendChild(stBox);
+    loadStempel(DN[d]);
+  }
+
+  if(d===0){
+    // MONTAG
+    var loadDiv=document.createElement("div");
+    loadDiv.id="monday-loading";loadDiv.className="loading-text";
+    loadDiv.textContent="⏳ Definition wird geladen...";
+    body.appendChild(loadDiv);
+
+    var defBox=document.createElement("div");
+    defBox.id="def-box";body.appendChild(defBox);
+
+    var mcBox=document.createElement("div");
+    mcBox.id="mc-box";body.appendChild(mcBox);
+
+    var hint=document.createElement("div");
+    hint.className="task-hint";
+    hint.textContent="Lies die Definition gut durch. Dann beantworte die Fragen – du darfst oben nachschauen!";
+    body.appendChild(hint);
+
+    // Submit für Montag: speichert dass SuS fertig ist
+    var btnRow=document.createElement("div");
+    btnRow.style.cssText="display:flex;align-items:center;gap:14px;flex-wrap:wrap";
+    var btn=document.createElement("button");
+    btn.className="submit-btn btn-0";btn.id="submit-btn";
+    btn.textContent="Fertig ✓";
+    btn.onclick=function(){
+      var name=document.getElementById("name-input").value.trim();
+      if(!name){alert("Bitte trage zuerst deinen Namen ein.");return;}
+      btn.disabled=true;btn.textContent="Gespeichert ✓";
+      saveToSheets(name,"Montag","Definition & Quiz abgeschlossen","—");
+      var sn=document.createElement("span");
+      sn.style.cssText="font-size:12px;color:var(--green);font-weight:600";
+      sn.textContent="✅ Gespeichert";
+      btnRow.appendChild(sn);
+    };
+    btnRow.appendChild(btn);
+    body.appendChild(btnRow);
+
+    loadMonday();
+
+  } else {
+    // DIENSTAG – FREITAG
+    var prompts=["","Schreibe einen eigenen Satz mit dem Wort «"+S.wort+"».\nDu darfst die Form des Wortes verändern.",
+      S.art==="Verb"?"Konjugiere das Verb «"+S.wort+"» im Präsens:\nych __ / du __ / er/sie __ / wir __ / ihr __ / sie __":S.art==="Adjektiv"?"Steigere das Adjektiv «"+S.wort+"»:\nGrundform: __ / Komparativ: __ / Superlativ: am __":"Bilde den Plural von «"+S.wort+"».\nSchreibe dann einen Satz mit dem Plural.",
+      "Schreibe 1–2 Wörter, die mit «"+S.wort+"» verwandt sind.\nErkläre kurz, was sie bedeuten.",
+      "Schreibe den Satz dieser Woche aus dem Gedächtnis.\nOhne nachzuschauen!"];
+    var hints=["",
+      "Tipp: Schau, wie das Wort im Modellsatz steht.",
+      S.art==="Verb"?"Schau im Wörterbuch nach, wenn du nicht sicher bist.":S.art==="Adjektiv"?"Beispiel: schnell → schneller → am schnellsten":"Beispiel: die Hand → die Hände",
+      "Beispiel: «entschlossen» → «der Entschluss» (= eine Entscheidung)",
+      "Vergleiche danach mit dem Satz oben. Alles richtig? ✓"];
+    var phs=["","Mein Satz: ...","Deine Antwort...","Verwandte Wörter...","Schreibe den Satz aus dem Gedächtnis..."];
+
+    var promptEl=document.createElement("div");
+    promptEl.className="task-prompt";promptEl.textContent=prompts[d];
+    body.appendChild(promptEl);
+
+    if(hints[d]){
+      var hintEl=document.createElement("div");
+      hintEl.className="task-hint";hintEl.textContent=hints[d];
+      body.appendChild(hintEl);
+    }
+
+    if(d===4){
+      var blEl=document.createElement("div");
+      blEl.className="friday-blank";
+      var blanked=S.satz.replace(new RegExp(S.wort,"gi"),"_".repeat(S.wort.length));
+      blEl.textContent="«"+blanked+"»";
+      body.appendChild(blEl);
+    }
+
+    var ta=document.createElement("textarea");
+    ta.id="answer-input";ta.placeholder=phs[d];
+    body.appendChild(ta);
+
+    var btnRow2=document.createElement("div");
+    btnRow2.style.cssText="display:flex;align-items:center;gap:14px;flex-wrap:wrap";
+    var btn2=document.createElement("button");
+    btn2.className="submit-btn btn-"+d;btn2.id="submit-btn";
+    btn2.textContent="Fertig – Rückmeldung holen ✓";
+    btn2.onclick=submitAnswer;
+    btnRow2.appendChild(btn2);
+    var snEl=document.createElement("span");
+    snEl.id="saved-notice";snEl.style.cssText="font-size:12px;color:var(--green);font-weight:600;display:none";
+    snEl.textContent="✅ Gespeichert";
+    btnRow2.appendChild(snEl);
+    body.appendChild(btnRow2);
+
+    var fbBox=document.createElement("div");
+    fbBox.id="feedback-box";fbBox.className="fb-"+d;
+    fbBox.innerHTML="<div class='fb-label' id='fb-label'>Rückmeldung</div><div id='fb-text'></div>";
+    body.appendChild(fbBox);
+  }
+}
+
+function switchDay(d){currentDay=d;renderTabs();renderCard();}
+function toggleT(){document.getElementById("teacher-form").classList.toggle("open");}
+
+function saveT(){
+  S.satz=document.getElementById("t-satz").value.trim();
+  S.wort=document.getElementById("t-wort").value.trim();
+  S.art=document.getElementById("t-art").value;
+  S.woche=document.getElementById("t-woche").value.trim();
+  S.kw=document.getElementById("t-kw").value.trim();
+  S.script=document.getElementById("t-script").value.trim();
+  try{localStorage.setItem("sdw_settings",JSON.stringify(S));}catch(e){}
+  toggleT();renderBanner();renderTabs();renderCard();
+}
+
+function loadState(){
+  try{
+    var saved=localStorage.getItem("sdw_settings");
+    if(saved){var p=JSON.parse(saved);Object.assign(S,p);}
+    document.getElementById("t-satz").value=S.satz;
+    document.getElementById("t-wort").value=S.wort;
+    document.getElementById("t-art").value=S.art;
+    document.getElementById("t-woche").value=S.woche;
+    document.getElementById("t-kw").value=S.kw;
+    document.getElementById("t-script").value=S.script||"";
+    var name=localStorage.getItem("sdw_name")||"";
+    document.getElementById("name-input").value=name;
+    document.getElementById("name-input").addEventListener("change",function(){
+      localStorage.setItem("sdw_name",this.value);
+    });
+  }catch(e){}
+}
+
+function saveToSheets(name,tag,antwort,feedback){
+  if(!S.script)return;
+  fetch(S.script,{
+    method:"POST",mode:"no-cors",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({name:name,tag:tag,kw:S.kw,woche:S.woche,antwort:antwort,feedback:feedback})
+  }).catch(function(){});
+}
+
+function submitAnswer(){
+  var taEl=document.getElementById("answer-input");
+  if(!taEl)return;
+  var answer=taEl.value.trim();
+  if(!answer){alert("Bitte schreibe zuerst deine Antwort.");return;}
+  var name=document.getElementById("name-input").value.trim();
+  if(!name){alert("Bitte trage zuerst deinen Namen ein.");return;}
+
+  var btn=document.getElementById("submit-btn");
+  btn.disabled=true;
+
+  var fbText=getRuleFeedback(currentDay,answer);
+  var fbBox=document.getElementById("feedback-box");
+  if(fbBox){fbBox.style.display="block";document.getElementById("fb-text").textContent=fbText;}
+
+  btn.textContent="Nochmals versuchen";btn.disabled=false;
+
+  saveToSheets(name,DN[currentDay],answer,fbText);
+  setTimeout(function(){
+    var sn=document.getElementById("saved-notice");
+    if(sn)sn.style.display="flex";
+  },800);
+}
+
+currentDay=autoDay();
+loadState();
+renderBanner();renderTabs();renderCard();
+</script>
+</body>
+</html>
